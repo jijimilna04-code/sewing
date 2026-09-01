@@ -35,12 +35,13 @@ jobs:
           sed -i 's/requirements = python3,kivy/requirements = python3,kivy,arabic_reshaper,python-bidi/g' buildozer.spec
           sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/g' buildozer.spec
           python3 -c "import pexpect; child = pexpect.spawn('buildozer -v android debug'); child.expect(pexpect.EOF, timeout=None); print(child.before.decode())"
+          
+          # إيجاد وتجميع ملفات APK
+          mkdir -p output_apk
+          find . -name "*.apk" -exec cp {} output_apk/ \;
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: |
-            bin/*.apk
-            .buildozer/android/platform/build-*/build/other_builds/*/*/*/bin/*.apk
-            .buildozer/android/platform/build-*/dists/*/__recovery_packages/*.apk
+          path: output_apk/*.apk
