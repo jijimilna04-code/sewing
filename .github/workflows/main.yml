@@ -8,13 +8,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build APK with Buildozer Action
-        uses: kivy/buildozer-action@v1.22.0
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          command: buildozer -v android debug
-          buildozer_version: master
+          python-version: '3.10'
 
-      - name: Upload APK
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev libxml2-dev libxslt1-dev zlib1g-dev python3-dev lld autoconf automake libtool pkg-config zip unzip openjdk-17-jdk
+
+      - name: Install Buildozer & Cython
+        run: |
+          python -m pip install --upgrade pip
+          pip install "cython<3.0.0" buildozer arabic_reshaper python-bidi
+
+      - name: Build Android APK
+        run: |
+          if [ ! -f buildozer.spec ]; then
+            buildozer init
+            sed -i 's/requirements = python3,kivy/requirements = python3,kivy,arabic_reshaper,python-bidi/g' buildozer.spec
+          fi
+          sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/g' buildozer.spec
+          yes | buildozer -v android debug
+
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
