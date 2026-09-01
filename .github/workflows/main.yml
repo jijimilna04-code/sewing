@@ -27,21 +27,17 @@ jobs:
       - name: Install Buildozer & Dependencies
         run: |
           pip install --upgrade pip
-          pip install "cython<3.0.0" buildozer arabic_reshaper python-bidi pexpect
+          pip install "cython<3.0.0" buildozer arabic_reshaper python-bidi
 
       - name: Build APK
         run: |
           buildozer init
           sed -i 's/requirements = python3,kivy/requirements = python3,kivy,arabic_reshaper,python-bidi/g' buildozer.spec
           sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/g' buildozer.spec
-          python3 -c "import pexpect; child = pexpect.spawn('buildozer -v android debug'); child.expect(pexpect.EOF, timeout=None); print(child.before.decode())"
-          
-          # إيجاد وتجميع ملفات APK
-          mkdir -p output_apk
-          find . -name "*.apk" -exec cp {} output_apk/ \;
+          yes | buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: output_apk/*.apk
+          path: bin/*.apk
