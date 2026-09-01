@@ -1,6 +1,5 @@
 name: Build Mobile App
 
-
 on: [push]
 
 jobs:
@@ -23,19 +22,19 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev libxml2-dev libxslt1-dev zlib1g-dev python3-dev cython3 lld autoconf automake libtool pkg-config zip unzip openjdk-17-jdk
+          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev libxml2-dev libxslt1-dev zlib1g-dev python3-dev lld autoconf automake libtool pkg-config zip unzip openjdk-17-jdk
 
-      - name: Install Buildozer
+      - name: Install Buildozer & Cython
         run: |
           pip install --upgrade pip
-          pip install buildozer cython arabic_reshaper python-bidi
+          pip install "cython<3.0.0" buildozer arabic_reshaper python-bidi
 
       - name: Build APK
         run: |
           buildozer init
           sed -i 's/requirements = python3,kivy/requirements = python3,kivy,arabic_reshaper,python-bidi/g' buildozer.spec
           sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/g' buildozer.spec
-          buildozer -v android debug
+          yes | buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
