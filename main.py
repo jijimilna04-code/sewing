@@ -1,14 +1,43 @@
-from kivy.app import App
-from kivy.uix.label import Label
-import arabic_reshaper
-from bidi.algorithm import get_display
+name: Build Mobile App
 
-class SewingApp(App):
-    def build(self):
-        text = "مرحباً بك في تطبيق الخياطة"
-        reshaped_text = arabic_reshaper.reshape(text)
-        bidi_text = get_display(reshaped_text)
-        return Label(text=bidi_text)
+on: [push]
 
-if __name__ == '__main__':
-    SewingApp().run()
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev libxml2-dev libxslt1-dev zlib1g-dev python3-dev cython3 lld autoconf automake libtool pkg-config zip unzip openjdk-17-jdk
+
+      - name: Install Buildozer
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython arabic_reshaper python-bidi
+
+      - name: Build APK
+        run: |
+          buildozer init
+          sed -i 's/requirements = python3,kivy/requirements = python3,kivy,arabic_reshaper,python-bidi/g' buildozer.spec
+          sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/g' buildozer.spec
+          buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: bin/*.apk
