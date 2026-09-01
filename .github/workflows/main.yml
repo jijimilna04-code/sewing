@@ -36,19 +36,14 @@ jobs:
             sed -i 's/requirements = python3,kivy/requirements = python3,kivy,arabic_reshaper,python-bidi/g' buildozer.spec
           fi
           sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/g' buildozer.spec
-          sed -i 's/log_level = 2/log_level = 2/g' buildozer.spec
           
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
           
-          buildozer -v android debug 2>&1 | tee build.log
+          buildozer -v android debug
 
-      - name: Upload APK Artifact
-        if: always()
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs-and-apk
-          path: |
-            bin/*.apk
-            build.log
-
+          name: app-android-apk
+          path: .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/*/build/outputs/apk/debug/*.apk
