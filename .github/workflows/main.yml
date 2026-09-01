@@ -29,12 +29,13 @@ jobs:
           pip install --upgrade pip
           pip install "cython<3.0.0" buildozer arabic_reshaper python-bidi
 
-      - name: Build APK
+      - name: Initialize Buildozer and Build APK
         run: |
           buildozer init
           sed -i 's/requirements = python3,kivy/requirements = python3,kivy,arabic_reshaper,python-bidi/g' buildozer.spec
           sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/g' buildozer.spec
-          yes | buildozer -v android debug
+          sed -i 's/# android.api = 33/android.api = 33/g' buildozer.spec
+          buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
